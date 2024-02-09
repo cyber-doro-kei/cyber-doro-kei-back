@@ -10,3 +10,7 @@ async def hello():
 @app.get("/test")
 async def test():
     return {"test": "ok"}
+
+@app.get("/test2")
+async def test2():
+    return {"test2": "ok"}
