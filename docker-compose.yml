@@ -17,7 +17,7 @@ services:
     build: .
     container_name: backend
     volumes:
-      - ./backend:/app
+      - ./backend:/backend
     depends_on:
       - db
     env_file:
