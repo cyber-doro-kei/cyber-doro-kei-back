@@ -48,7 +48,7 @@ def on_snapshot(keys, changes,docs,):
         print(response.json())
         print("HTTP POST request successful")
         
-# Cloud Firestoreの特定のコレクションを監視する
+# Cloud Firestoreの特定のコレクションを監視する(まだ使ってない)(event関連で使うかも？)
 collection_ref = db.collection("rooms")
 docs_watch = collection_ref.on_snapshot(on_snapshot)
 
@@ -75,8 +75,22 @@ async def assign_member(room_id: str):
         response = {"response": "Invalid input"}
         return JSONResponse(status_code=405, content=response)
     else:
-        response = {"response": "Successful Operation"}
-        return JSONResponse(status_code=200, content=response)
+        try:
+            #usersコレクションを取得
+            users_ref = db.collection("users")
+            
+            #room_idが等しいuserを取得
+            users = users_ref.where("room_id", "==", room_id).stream()
+            
+            for user in users:
+                user_ref = users_ref.document(user.id)
+                user_ref.update({"is_cop": True})
+            response = {"response": "is_cop field updated successfully"}
+            return JSONResponse(status_code=200, content=response)
+
+        except Exception as e:
+            # エラーが発生した場合はHTTP例外を発生させる
+            raise HTTPException(status_code=500, detail=f"Error updating documents: {str(e)}")
 
 @app.post("/start/timer/{room_id}")
 #room_idは
