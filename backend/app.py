@@ -82,9 +82,72 @@ async def assign_member(room_id: str):
             #room_idが等しいuserを取得
             users = users_ref.where("room_id", "==", room_id).stream()
             
+            female_users = users_ref.where("room_id", "==", room_id).where("is_male", "==", False).count()
+            male_users = users_ref.where("room_id", "==", room_id).where("is_male", "==", True).count() 
+            male_cop = 0
+            femal_cop = 0
+            
+            #copの設定人数を取り出す
+            doc_ref = db.collection("rooms").document(room_id)
+            doc_snapshot = doc_ref.get()
+            cop_num = doc_snapshot.get("cop_num")
+            
+            # is_copをtrueにする人数を決定
+            min_cop_count = min(male_users, female_users)
+            cop_count = min(min_cop_count, cop_num // 2)
+            
+            # is_copをtrueに設定
+            users_ref = db.collection("users").where("room_id", "==", room_id)
+            users = users_ref.stream()
+            count = 0
             for user in users:
-                user_ref = users_ref.document(user.id)
-                user_ref.update({"is_cop": True})
+                if count < cop_count:
+                    user_ref = db.collection("users").document(user.id)
+                    user_ref.update({"is_cop": True})
+                    count += 1
+                else:
+                    user_ref = db.collection("users").document(user.id)
+                    user_ref.update({"is_cop": False})
+            
+            # cop_count分だけis_copをtrueにした後、残りの人をfalseに設定
+            users = db.collection("users").where("room_id", "==", room_id).where("is_cop", "==", False).stream()
+            for user in users:
+                user_ref = db.collection("users").document(user.id)
+                user_ref.update({"is_cop": False})
+            # for user in users:
+            #     user_data = user.to_dict()
+            #     user_ref = users_ref.document(user.id)
+            #     is_male = user_data.get("is_male", False)
+            #     if is_male:
+            #         if male_cop <= male_users * 0.4:
+            #             male_cop += 1
+            #             user_ref = users_ref.document(user.id)
+            #             user_ref.update({"is_cop": True})
+            #         else:
+            #             user_ref = users_ref.document(user.id)
+            #             user_ref.update({"is_cop": False})
+            #     else:
+            #         if male_cop <= (total_users - male_users)* 0.4:
+            #             female_cop += 1
+            #             user_ref = users_ref.document(user.id)
+            #             user_ref.update({"is_cop": True})
+            #         else:
+            #             user_ref = users_ref.document(user.id)
+            #             user_ref.update({"is_cop": False})
+            
+            # # is_maleがtrueの場合
+            # male_cop_count = int(total_users * 0.4)
+            # male_cop_count = int(male_cop_count)
+            # users_ref.where("room_id", "==", room_id).where("is_male", "==", True).limit(male_cop_count).update({"is_cop": True})
+            # users_ref.where("room_id", "==", room_id).where("is_male", "==", True).offset(male_cop_count).update({"is_cop": False})
+            
+            # # is_maleがfalseの場合
+            # female_cop_count = int(total_users * 0.4)
+            # users_ref.where("room_id", "==", room_id).where("is_male", "==", False).limit(female_cop_count).update({"is_cop": True})
+            # users_ref.where("room_id", "==", room_id).where("is_male", "==", False).offset(female_cop_count).update({"is_cop": False})
+            
+            # user_ref = users_ref.document(user.id)
+            # user_ref.update({"is_cop": True})
             response = {"response": "is_cop field updated successfully"}
             return JSONResponse(status_code=200, content=response)
 
