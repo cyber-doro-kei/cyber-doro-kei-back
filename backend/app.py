@@ -11,7 +11,7 @@ from datetime import datetime
 import pytz
 from models import Item,StartTimer 
 from function import on_snapshot
-
+import random
 
 #.envファイルから環境変数を読み込む
 load_dotenv()
@@ -54,7 +54,10 @@ async def assign_member(room_id: str):
             
             # ドキュメントを取得し、room_idフィールドが指定されたroom_idと等しい場合はis_copフィールドを更新する
             users = users_ref.where("room_id", "==", room_id).stream()
-            for user in users:
+            users_list = list(users)
+            # userをシャッフルする
+            random.shuffle(users_list)
+            for user in users_list:
                 user_ref = users_ref.document(user.id)
                 if cop_num > 0:
                     user_ref.update({"is_cop": True})
