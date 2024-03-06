@@ -10,7 +10,7 @@ import os
 from datetime import datetime
 import pytz
 from models import Item,StartTimer 
-from function import on_snapshot
+from function import on_snapshot,watch_firestore
 import random
 import math
 
@@ -112,6 +112,32 @@ async def event_start(room_id: str):
     if room_id == None:
         response = {"response": "Invalid input"}
         return JSONResponse(status_code=405, content=response)
+    else:
+        try:
+            #roomの開始時間,eventの開始時間を読み取る
+            room_ref = db.collection("rooms").document(room_id)
+            room_snapshot = room_ref.get()
+            started_at = room_snapshot.get("started_at")
+            play_time_seconds = room_snapshot.get("play_time_seconds")
+            
+            #roomに参加しているuserの人数を取得
+            users_ref = db.collection("users").document(room_id).stream()
+            users = users_ref.where("room_id", "==", room_id)
+            
+            #copの設定人数を取り出す
+            doc_ref = db.collection("rooms").document(room_id)
+            doc_snapshot = doc_ref.get()
+            cop_ration = doc_snapshot.get("cop_num")
+            robber_ration = doc_snapshot.get("robber_num")
+            
+            # ドキュメントを取得し、room_idフィールドが指定されたroom_idと等しい場合はis_copフィールドを更新する
+            users = users_ref.where("room_id", "==", room_id).stream()
+            users_list = list(users)
+            users_num = len(users_list)
+            
+            
+            response = {"response": "is_cop field updated successfully for matching documents"}
+            return JSONResponse(status_code=200, content=response)
     else:
         response = {"response": "Successful Operation"}
         return JSONResponse(status_code=200, content=response)
