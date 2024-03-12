@@ -1,5 +1,5 @@
 #streamで変化を検知したときに使うやつ(まだ使ってない)(event関連で使うかも？)
-def on_snapshot(keys, changes, docs):
+def on_snapshot(doc_snapshot, changes, read_time):
     for change in changes:
         #変更されたドキュメントを取得
         doc_ref = change.document.reference
@@ -51,6 +51,6 @@ def on_snapshot(keys, changes, docs):
 
 # Cloud Firestoreの特定のコレクションを監視する
 def watch_firestore(room_id: str):
-    collection_ref = db.collection("rooms")
+    collection_ref = db.collection("users")
     query = collection_ref.where("room_id", "==", room_id)
     query_watch = query.on_snapshot(on_snapshot)

@@ -25,13 +25,6 @@ cred = credentials.Certificate(firebase_key_path)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-# 日本時間のタイムゾーンを取得
-jst = pytz.timezone('Asia/Tokyo')
-       
-# Cloud Firestoreの特定のコレクションを監視する(まだ使ってない)(event関連で使うかも？)
-collection_ref = db.collection("rooms")
-docs_watch = collection_ref.on_snapshot(on_snapshot)
-    
 app = FastAPI()
 
 @app.get("/")
@@ -63,7 +56,6 @@ async def assign_member(room_id: str):
             
             #警察にいれる人数を計算
             cop_num = math.floor((cop_ration / (cop_ration + robber_ration)) * users_num)
-            print(cop_num)
             
             for user in users_list:
                 user_ref = users_ref.document(user.id)
@@ -114,28 +106,29 @@ async def event_start(room_id: str):
         return JSONResponse(status_code=405, content=response)
     else:
         try:
-            #roomの開始時間,eventの開始時間を読み取る
-            room_ref = db.collection("rooms").document(room_id)
-            room_snapshot = room_ref.get()
-            started_at = room_snapshot.get("started_at")
-            play_time_seconds = room_snapshot.get("play_time_seconds")
             
-            #roomに参加しているuserの人数を取得
-            users_ref = db.collection("users").document(room_id).stream()
-            users = users_ref.where("room_id", "==", room_id)
+            # #roomの開始時間,eventの開始時間を読み取る
+            # room_ref = db.collection("rooms").document(room_id)
+            # room_snapshot = room_ref.get()
+            # started_at = room_snapshot.get("started_at")
+            # play_time_seconds = room_snapshot.get("play_time_seconds")
             
-            #copの設定人数を取り出す
-            doc_ref = db.collection("rooms").document(room_id)
-            doc_snapshot = doc_ref.get()
-            cop_ration = doc_snapshot.get("cop_num")
-            robber_ration = doc_snapshot.get("robber_num")
+            # #roomに参加しているuserの人数を取得
+            # users_ref = db.collection("users").document(room_id).stream()
+            # users = users_ref.where("room_id", "==", room_id)
             
-            # ドキュメントを取得し、room_idフィールドが指定されたroom_idと等しい場合はis_copフィールドを更新する
-            users = users_ref.where("room_id", "==", room_id).stream()
-            users_list = list(users)
-            users_num = len(users_list)
+            # #copの設定人数を取り出す
+            # doc_ref = db.collection("rooms").document(room_id)
+            # doc_snapshot = doc_ref.get()
+            # cop_ration = doc_snapshot.get("cop_num")
+            # robber_ration = doc_snapshot.get("robber_num")
             
+            # # ドキュメントを取得し、room_idフィールドが指定されたroom_idと等しい場合はis_copフィールドを更新する
+            # users = users_ref.where("room_id", "==", room_id).stream()
+            # users_list = list(users)
+            # users_num = len(users_list)
             
+            watch_firestore(room_id)
             response = {"response": "is_cop field updated successfully for matching documents"}
             return JSONResponse(status_code=200, content=response)
     else:
