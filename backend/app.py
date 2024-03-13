@@ -11,7 +11,8 @@ from datetime import datetime
 import pytz
 from models import Item,StartTimer 
 from function import on_snapshot
-
+import random
+import math
 
 #.envファイルから環境変数を読み込む
 load_dotenv()
@@ -23,13 +24,6 @@ firebase_key_path = os.getenv("FIREBASE_KEY_PATH")
 cred = credentials.Certificate(firebase_key_path)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
-
-# 日本時間のタイムゾーンを取得
-jst = pytz.timezone('Asia/Tokyo')
-       
-# Cloud Firestoreの特定のコレクションを監視する(まだ使ってない)(event関連で使うかも？)
-collection_ref = db.collection("rooms")
-docs_watch = collection_ref.on_snapshot(on_snapshot)
     
 app = FastAPI()
 
@@ -50,11 +44,20 @@ async def assign_member(room_id: str):
             #copの設定人数を取り出す
             doc_ref = db.collection("rooms").document(room_id)
             doc_snapshot = doc_ref.get()
-            cop_num = doc_snapshot.get("cop_num")
+            cop_ration = doc_snapshot.get("cop_num")
+            robber_ration = doc_snapshot.get("robber_num")
             
             # ドキュメントを取得し、room_idフィールドが指定されたroom_idと等しい場合はis_copフィールドを更新する
             users = users_ref.where("room_id", "==", room_id).stream()
-            for user in users:
+            users_list = list(users)
+            users_num = len(users_list)
+            # userをシャッフルする
+            random.shuffle(users_list)
+            
+            #警察にいれる人数を計算
+            cop_num = math.floor((cop_ration / (cop_ration + robber_ration)) * users_num)
+            
+            for user in users_list:
                 user_ref = users_ref.document(user.id)
                 if cop_num > 0:
                     user_ref.update({"is_cop": True})
