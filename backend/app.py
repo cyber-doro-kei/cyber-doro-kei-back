@@ -25,6 +25,12 @@ cred = credentials.Certificate(firebase_key_path)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
     
+# 日本時間のタイムゾーンを取得
+jst = pytz.timezone('Asia/Tokyo')
+
+# Cloud Firestoreの特定のコレクションを監視する(まだ使ってない)(event関連で使うかも？)
+collection_ref = db.collection("rooms")
+
 app = FastAPI()
 
 @app.get("/")
