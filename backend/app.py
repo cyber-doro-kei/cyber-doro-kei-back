@@ -24,13 +24,6 @@ firebase_key_path = os.getenv("FIREBASE_KEY_PATH")
 cred = credentials.Certificate(firebase_key_path)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
-
-# 日本時間のタイムゾーンを取得
-jst = pytz.timezone('Asia/Tokyo')
-       
-# Cloud Firestoreの特定のコレクションを監視する(まだ使ってない)(event関連で使うかも？)
-collection_ref = db.collection("rooms")
-docs_watch = collection_ref.on_snapshot(on_snapshot)
     
 app = FastAPI()
 
@@ -63,7 +56,6 @@ async def assign_member(room_id: str):
             
             #警察にいれる人数を計算
             cop_num = math.floor((cop_ration / (cop_ration + robber_ration)) * users_num)
-            print(cop_num)
             
             for user in users_list:
                 user_ref = users_ref.document(user.id)
