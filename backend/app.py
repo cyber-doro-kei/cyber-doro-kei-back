@@ -7,12 +7,15 @@ import requests
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 import os
-from datetime import datetime
+import time
+from datetime import datetime, timedelta
 import pytz
-from models import Item,StartTimer 
-from function import on_snapshot
 import random
 import math
+
+from models import Item,StartTimer 
+from function import on_snapshot
+from event.event import Event
 
 #.envファイルから環境変数を読み込む
 load_dotenv()
@@ -94,9 +97,21 @@ async def start_timer(room_id: str, req: StartTimer):
             }
 
             # Firebaseのroomsコレクションへの参照を取得し、指定されたドキュメントにデータを追加
-            collection_ref = db.collection("rooms")
-            doc_ref = collection_ref.document(room_id)
+            doc_ref = db.collection("rooms").document(room_id)
             doc_ref.update(data)
+
+            doc_snapshot = doc_ref.get()
+            play_time_seconds = doc_snapshot.get("play_time_seconds")
+
+            start_time: datetime = datetime.now()
+            end_time =  start_time + timedelta(seconds = play_time_seconds)
+            # COMMENT: プレイ時間を超えた場合、強制的にDBの監視を停止する
+            while end_time > start_time:
+                event = Event(db, room_id)
+                is_finish = event.check_db()
+                if is_finish: # COMMENT: eventが発令されたらループを抜ける
+                    break
+                time.sleep(60) # COMMENT: 60秒置きに実行
 
             return {"message": "Data added to Firebase successfully"}
 
