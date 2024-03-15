@@ -103,7 +103,7 @@ async def start_timer(room_id: str, req: StartTimer):
             start_time: datetime = datetime.now()
             end_time =  start_time + timedelta(seconds = play_time_seconds)
             # COMMENT: プレイ時間を超えた場合、強制的にDBの監視を停止する
-            while end_time > start_time:
+            while end_time > datetime.now():
                 event = Event(db, room_id)
                 is_finish = event.check_db()
                 if is_finish: # COMMENT: eventが発令されたらループを抜ける
