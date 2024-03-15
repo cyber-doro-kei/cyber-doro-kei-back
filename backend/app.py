@@ -1,21 +1,18 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-import uvicorn
-import firebase_admin
-from firebase_admin import credentials, firestore
-import requests
-from fastapi.responses import JSONResponse
-from dotenv import load_dotenv
+import math
 import os
+import random
 import time
 from datetime import datetime, timedelta
-import pytz
-import random
-import math
 
-from models import Item,StartTimer 
-from function import on_snapshot
+import firebase_admin
+import pytz
+from dotenv import load_dotenv
 from event.event import Event
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
+from firebase_admin import credentials, firestore
+from function import on_snapshot
+from models import Item, StartTimer
 
 #.envファイルから環境変数を読み込む
 load_dotenv()
