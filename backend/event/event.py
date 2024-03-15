@@ -31,12 +31,6 @@ class Event:
         return: boolean -> イベントを開始するかどうかのフラグ
         """
 
-        """
-        COMMENT: テスト時の留意点
-        本テストでは、room_id == 1 に入っているユーザーを利用する
-        逃走者 3名中、逮捕者 2名を想定
-        """
-
         self.count_robber_num()
         arrest_num: int = 0
 
@@ -79,7 +73,7 @@ class Event:
         -------------------
         return: boolean -> イベントを開始したか否かのフラグ Trueの場合DBの監視を停止する
         """
-        
+
         if self.is_event_start():
             self.add_event_logs()
             return True
