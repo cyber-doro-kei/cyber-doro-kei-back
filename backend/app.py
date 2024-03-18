@@ -1,35 +1,20 @@
 import math
-import os
 import random
-import time
-from datetime import datetime, timedelta
+import subprocess
+from datetime import datetime
 
-import firebase_admin
 import pytz
+from db import DB
 from dotenv import load_dotenv
-from event.event import Event
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
-from firebase_admin import credentials, firestore
-from function import on_snapshot
-from models import Item, StartTimer
 
-#.envファイルから環境変数を読み込む
-load_dotenv()
-
-#環境変数からFirebaseの秘密鍵ファイルのパスを取得
-firebase_key_path = os.getenv("FIREBASE_KEY_PATH")
-
-#Firebase初期化
-cred = credentials.Certificate(firebase_key_path)
-firebase_admin.initialize_app(cred)
-db = firestore.client()
+# COMMENT: Firebase初期化
+db_init = DB()
+db = db_init.connection()
     
 # 日本時間のタイムゾーンを取得
 jst = pytz.timezone('Asia/Tokyo')
-
-# Cloud Firestoreの特定のコレクションを監視する(まだ使ってない)(event関連で使うかも？)
-collection_ref = db.collection("rooms")
 
 app = FastAPI()
 
@@ -80,7 +65,7 @@ async def assign_member(room_id: str):
 
 @app.post("/start/timer/{room_id}")
 #room_idは
-async def start_timer(room_id: str, req: StartTimer):
+async def start_timer(room_id: str):
     if room_id == None:
         response = {"response": "Invalid input"}
         return JSONResponse(status_code=405, content=response)
@@ -97,18 +82,8 @@ async def start_timer(room_id: str, req: StartTimer):
             doc_ref = db.collection("rooms").document(room_id)
             doc_ref.update(data)
 
-            doc_snapshot = doc_ref.get()
-            play_time_seconds = doc_snapshot.get("play_time_seconds")
-
-            start_time: datetime = datetime.now()
-            end_time =  start_time + timedelta(seconds = play_time_seconds)
-            # COMMENT: プレイ時間を超えた場合、強制的にDBの監視を停止する
-            while end_time > datetime.now():
-                event = Event(db, room_id)
-                is_finish = event.check_db()
-                if is_finish: # COMMENT: eventが発令されたらループを抜ける
-                    break
-                time.sleep(60) # COMMENT: 60秒置きに実行
+            command = ['python','event/execute.py', room_id]
+            proc = subprocess.Popen(command) # COMMENT: サブプロセスでDB監視を実施
 
             return {"message": "Data added to Firebase successfully"}
 
