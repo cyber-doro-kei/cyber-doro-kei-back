@@ -1,35 +1,21 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-import uvicorn
-import firebase_admin
-from firebase_admin import credentials, firestore
-import requests
-from fastapi.responses import JSONResponse
-from dotenv import load_dotenv
-import os
-from datetime import datetime
-import pytz
-from models import Item,StartTimer 
-from function import on_snapshot
-import random
 import math
+import random
+import subprocess
+from datetime import datetime
 
-#.envファイルから環境変数を読み込む
-load_dotenv()
+import pytz
+from db import DB
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
+from models import Item, StartTimer
 
-#環境変数からFirebaseの秘密鍵ファイルのパスを取得
-firebase_key_path = os.getenv("FIREBASE_KEY_PATH")
-
-#Firebase初期化
-cred = credentials.Certificate(firebase_key_path)
-firebase_admin.initialize_app(cred)
-db = firestore.client()
+# COMMENT: Firebase初期化
+db_init = DB()
+db = db_init.connection()
     
 # 日本時間のタイムゾーンを取得
 jst = pytz.timezone('Asia/Tokyo')
-
-# Cloud Firestoreの特定のコレクションを監視する(まだ使ってない)(event関連で使うかも？)
-collection_ref = db.collection("rooms")
 
 app = FastAPI()
 
@@ -94,9 +80,11 @@ async def start_timer(room_id: str, req: StartTimer):
             }
 
             # Firebaseのroomsコレクションへの参照を取得し、指定されたドキュメントにデータを追加
-            collection_ref = db.collection("rooms")
-            doc_ref = collection_ref.document(room_id)
+            doc_ref = db.collection("rooms").document(room_id)
             doc_ref.update(data)
+
+            command = ['python','event/execute.py', room_id]
+            subprocess.Popen(command) # COMMENT: サブプロセスでDB監視を実施
 
             return {"message": "Data added to Firebase successfully"}
 
