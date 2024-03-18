@@ -29,6 +29,7 @@ async def assign_member(room_id: str):
     try:
         assign = Assign(db, room_id)
         assign.execute()
+        
         response = {"response": "is_cop field updated successfully for matching documents"}
         return JSONResponse(status_code=200, content=response)
 
@@ -46,8 +47,9 @@ async def start_timer(room_id: str, req: StartTimer):
         command = ['python','event/execute.py', room_id]
         subprocess.Popen(command) # COMMENT: サブプロセスでDB監視を実施
 
-        return {"message": "Data added to Firebase successfully"}
-
+        response = {"message": "Data added to Firebase successfully"}
+        return JSONResponse(status_code=200, content=response)
+        
     except Exception as e:
         # エラーが発生した場合はHTTP例外を発生させる
         raise HTTPException(status_code=500, detail=f"Error adding data to Firebase: {str(e)}")
