@@ -2,6 +2,9 @@ import random
 import math
 
 class Assign:
+    """
+    Assign: Class -> プレイヤー割り当て管理全体を統括するクラス
+    """
     def __init__(self, db, room_id: str) -> None:
         self.db = db
         self.room_id: str = room_id
@@ -60,9 +63,9 @@ class Assign:
         random.shuffle(users_list) # COMMENT: userをシャッフルする
         return users_list
 
-    def execute(self) -> None:
+    def assign_member(self) -> None:
         """
-        description: 処理実行関数
+        description: プレイヤーを警察・泥棒に割り当てる処理
         -----------------
         none
         -----------------

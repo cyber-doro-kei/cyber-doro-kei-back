@@ -28,8 +28,8 @@ async def hello():
 async def assign_member(room_id: str):
     try:
         assign = Assign(db, room_id)
-        assign.execute()
-        
+        assign.assign_member()
+
         response = {"response": "is_cop field updated successfully for matching documents"}
         return JSONResponse(status_code=200, content=response)
 
