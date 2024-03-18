@@ -81,9 +81,9 @@ class Event:
         else:
             return False
         
-    def main(self) -> None:
+    def event_start(self) -> None:
         """
-        description: 処理実行関数
+        description: イベントの開始について取り扱う
         -------------------
         none
         -------------------
