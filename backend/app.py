@@ -91,22 +91,3 @@ async def start_timer(room_id: str, req: StartTimer):
         except Exception as e:
             # エラーが発生した場合はHTTP例外を発生させる
             raise HTTPException(status_code=500, detail=f"Error adding data to Firebase: {str(e)}")
-
-
-@app.post("/event/start/{room_id}")
-async def event_start(room_id: str):
-    if room_id == None:
-        response = {"response": "Invalid input"}
-        return JSONResponse(status_code=405, content=response)
-    else:
-        response = {"response": "Successful Operation"}
-        return JSONResponse(status_code=200, content=response)
-
-@app.post("/event/finish/{room_id}")
-async def event_finish(room_id: str):
-    if room_id == None:
-        response = {"response": "Invalid input"}
-        return JSONResponse(status_code=405, content=response)
-    else:
-        response = {"response": "Successful Operation"}
-        return JSONResponse(status_code=200, content=response)
