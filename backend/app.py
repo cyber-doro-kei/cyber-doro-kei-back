@@ -1,16 +1,13 @@
-import math
-import random
 import subprocess
-from datetime import datetime
 
 import pytz
 from assign.assign import Assign
-from timer.timer import Timer
 from db import DB
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
-from models import Item, StartTimer
+from models import StartTimer
+from timer.timer import Timer
 
 # COMMENT: Firebase初期化
 db_init = DB()
@@ -21,9 +18,11 @@ jst = pytz.timezone('Asia/Tokyo')
 
 app = FastAPI()
 
+
 @app.get("/")
 async def hello():
     return {"message": "hello world!"}
+
 
 @app.post("/start/assign/{room_id}")
 async def assign_member(room_id: str):
@@ -36,6 +35,7 @@ async def assign_member(room_id: str):
     except Exception as e:
         # エラーが発生した場合はHTTP例外を発生させる
         raise HTTPException(status_code=500, detail=f"Error updating documents: {str(e)}")
+
 
 @app.post("/start/timer/{room_id}")
 async def start_timer(room_id: str, req: StartTimer):
