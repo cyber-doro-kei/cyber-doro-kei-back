@@ -83,7 +83,7 @@ async def start_timer(room_id: str):
             doc_ref.update(data)
 
             command = ['python','event/execute.py', room_id]
-            proc = subprocess.Popen(command) # COMMENT: サブプロセスでDB監視を実施
+            subprocess.Popen(command) # COMMENT: サブプロセスでDB監視を実施
 
             return {"message": "Data added to Firebase successfully"}
 
