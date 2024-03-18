@@ -8,6 +8,7 @@ from db import DB
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
+from models import Item, StartTimer
 
 # COMMENT: Firebase初期化
 db_init = DB()
@@ -65,7 +66,7 @@ async def assign_member(room_id: str):
 
 @app.post("/start/timer/{room_id}")
 #room_idは
-async def start_timer(room_id: str):
+async def start_timer(room_id: str, req: StartTimer):
     if room_id == None:
         response = {"response": "Invalid input"}
         return JSONResponse(status_code=405, content=response)
