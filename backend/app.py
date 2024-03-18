@@ -37,7 +37,6 @@ async def assign_member(room_id: str):
         raise HTTPException(status_code=500, detail=f"Error updating documents: {str(e)}")
 
 @app.post("/start/timer/{room_id}")
-#room_idは
 async def start_timer(room_id: str, req: StartTimer):
     try:
         # ドキュメントに追加するデータを準備
