@@ -4,6 +4,7 @@ import subprocess
 from datetime import datetime
 
 import pytz
+from assign.assign import Assign
 from db import DB
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -26,33 +27,8 @@ async def hello():
 @app.post("/start/assign/{room_id}")
 async def assign_member(room_id: str):
     try:
-        # usersコレクションの参照を取得
-        users_ref = db.collection("users")
-        
-        #copの設定人数を取り出す
-        doc_ref = db.collection("rooms").document(room_id)
-        doc_snapshot = doc_ref.get()
-        cop_ration = doc_snapshot.get("cop_num")
-        robber_ration = doc_snapshot.get("robber_num")
-        
-        # ドキュメントを取得し、room_idフィールドが指定されたroom_idと等しい場合はis_copフィールドを更新する
-        users = users_ref.where("room_id", "==", room_id).stream()
-        users_list = list(users)
-        users_num = len(users_list)
-        # userをシャッフルする
-        random.shuffle(users_list)
-        
-        #警察にいれる人数を計算
-        cop_num = math.floor((cop_ration / (cop_ration + robber_ration)) * users_num)
-        
-        for user in users_list:
-            user_ref = users_ref.document(user.id)
-            if cop_num > 0:
-                user_ref.update({"is_cop": True})
-                cop_num -= 1
-            else:
-                user_ref.update({"is_cop": False})
-        
+        assign = Assign(db, room_id)
+        assign.execute()
         response = {"response": "is_cop field updated successfully for matching documents"}
         return JSONResponse(status_code=200, content=response)
 
