@@ -5,6 +5,7 @@ from datetime import datetime
 
 import pytz
 from assign.assign import Assign
+from timer.timer import Timer
 from db import DB
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -39,16 +40,8 @@ async def assign_member(room_id: str):
 @app.post("/start/timer/{room_id}")
 async def start_timer(room_id: str, req: StartTimer):
     try:
-        # ドキュメントに追加するデータを準備
-        started_at = datetime.now(jst).isoformat()
-        data = {
-            "started_at": started_at,
-            "is_active" : True
-        }
-
-        # Firebaseのroomsコレクションへの参照を取得し、指定されたドキュメントにデータを追加
-        doc_ref = db.collection("rooms").document(room_id)
-        doc_ref.update(data)
+        timer = Timer(db, room_id, jst)
+        timer.start_timer()
 
         command = ['python','event/execute.py', room_id]
         subprocess.Popen(command) # COMMENT: サブプロセスでDB監視を実施
