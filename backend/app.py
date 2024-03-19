@@ -1,13 +1,13 @@
 import subprocess
 
 import pytz
-from assign.assign import Assign
+from modules.assign.assign import Assign
 from db import DB
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from models import StartTimer
-from timer.timer import Timer
+from modules.timer.timer import Timer
 
 # COMMENT: Firebase初期化
 db_init = DB()
@@ -44,7 +44,7 @@ async def start_timer(room_id: str, req: StartTimer):
         timer = Timer(db, room_id, jst)
         timer.start_timer()
 
-        command = ['python','event/execute.py', room_id]
+        command = ['python','modules/event/execute.py', room_id]
         subprocess.Popen(command) # COMMENT: サブプロセスでDB監視を実施
 
         response = {"message": "Data added to Firebase successfully"}

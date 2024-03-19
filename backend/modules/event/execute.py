@@ -3,7 +3,7 @@ import sys
 
 from event import Event
 
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from db import DB
 
 # COMMENT: Firebase初期化
