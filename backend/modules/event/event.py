@@ -1,10 +1,12 @@
 import time
 from datetime import datetime, timedelta
 
+
 class Event:
     """
     Event: Class -> イベント全体を統括するクラス
     """
+
     def __init__(self, db, room_id: str) -> None:
         self.db = db
         self.room_id: str = room_id
@@ -43,11 +45,13 @@ class Event:
             is_under_arrest: bool = user_snapshot.get("is_under_arrest")
             if is_under_arrest:
                 arrest_num += 1
-        if self.robber_num//2 <= arrest_num: # COMMENT: 半数以上が逮捕されたらイベント発令
+        if (
+            self.robber_num // 2 <= arrest_num
+        ):  # COMMENT: 半数以上が逮捕されたらイベント発令
             return True
         else:
             return False
-    
+
     def add_event_logs(self) -> None:
         """
         description: event_logsにイベントを追加
@@ -60,7 +64,7 @@ class Event:
         data = {
             "room_id": self.room_id,
             "event_name": "テストイベント",
-            "event_output": ""
+            "event_output": "",
         }
         event_logs_ref = self.db.collection("event_logs")
         doc_ref = event_logs_ref.document(self.room_id)
@@ -74,16 +78,16 @@ class Event:
         -------------------
         return: boolean -> イベントを開始したか否かのフラグ Trueの場合DBの監視を停止する
         """
-        
+
         if self.is_event_start():
             self.add_event_logs()
             return True
         else:
             return False
-        
-    def main(self) -> None:
+
+    def event_start(self) -> None:
         """
-        description: 処理実行関数
+        description: イベントの開始について取り扱う
         -------------------
         none
         -------------------
@@ -95,13 +99,12 @@ class Event:
         play_time_seconds = doc_snapshot.get("play_time_seconds")
 
         start_time: datetime = datetime.now()
-        end_time: datetime = start_time + timedelta(seconds = play_time_seconds)
+        end_time: datetime = start_time + timedelta(seconds=play_time_seconds)
         # COMMENT: プレイ時間を超えた場合、強制的にDBの監視を停止する
         while end_time > datetime.now():
             is_finish: bool = self.check_db()
-            if is_finish: # COMMENT: eventが発令されたらループを抜ける
+            if is_finish:  # COMMENT: eventが発令されたらループを抜ける
                 break
-            time.sleep(60) # COMMENT: 60秒置きに実行
-        
+            time.sleep(60)  # COMMENT: 60秒置きに実行
+
         print("Event is started")
-            

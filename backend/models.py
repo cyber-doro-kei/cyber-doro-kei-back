@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class StartTimer(BaseModel):
     is_admin: bool
 # test用クラス
