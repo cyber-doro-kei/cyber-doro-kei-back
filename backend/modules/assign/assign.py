@@ -1,10 +1,12 @@
-import random
 import math
+import random
+
 
 class Assign:
     """
     Assign: Class -> プレイヤー割り当て管理全体を統括するクラス
     """
+
     def __init__(self, db, room_id: str) -> None:
         self.db = db
         self.room_id: str = room_id
@@ -17,12 +19,12 @@ class Assign:
         -----------------
         return none
         """
-        
+
         self.users_ref = self.db.collection("users")
         self.rooms_ref = self.db.collection("rooms")
         self.cop_ration: int = 0
         self.robber_ration: int = 0
-    
+
     def pick_out_cop_number(self) -> None:
         """
         description: 警察と泥棒の人数を取得する
@@ -31,7 +33,7 @@ class Assign:
         -----------------
         return none
         """
-        
+
         room_ref = self.rooms_ref.document(self.room_id)
         doc_snapshot = room_ref.get()
         self.cop_ration: int = doc_snapshot.get("cop_num")
@@ -46,9 +48,11 @@ class Assign:
         return cop_num: int -> 警察の人数
         """
 
-        cop_num: int = math.floor((self.cop_ration / (self.cop_ration + self.robber_ration)) * users_num)
+        cop_num: int = math.floor(
+            (self.cop_ration / (self.cop_ration + self.robber_ration)) * users_num
+        )
         return cop_num
-    
+
     def get_users_list(self) -> list:
         """
         description: プレイヤーリストの取得
@@ -60,7 +64,7 @@ class Assign:
 
         users = self.users_ref.where("room_id", "==", self.room_id).stream()
         users_list = list(users)
-        random.shuffle(users_list) # COMMENT: userをシャッフルする
+        random.shuffle(users_list)  # COMMENT: userをシャッフルする
         return users_list
 
     def assign_member(self) -> None:
@@ -85,8 +89,3 @@ class Assign:
                 cop_num -= 1
             else:
                 user_ref.update({"is_cop": False})
-        
-
-
-
-        
