@@ -91,3 +91,4 @@ class Assign:
                 cop_num -= 1
             else:
                 user_ref.update({"is_cop": False})
+                user_ref.update({"is_under_arrest": False})
