@@ -8,6 +8,10 @@ class Assign:
     def __init__(self, db, room_id: str) -> None:
         self.db = db
         self.room_id: str = room_id
+        self.users_ref = None
+        self.rooms_ref = None
+        self.cop_ration: int = 0
+        self.robber_ration: int = 0
 
     def set(self) -> None:
         """
@@ -20,8 +24,6 @@ class Assign:
         
         self.users_ref = self.db.collection("users")
         self.rooms_ref = self.db.collection("rooms")
-        self.cop_ration: int = 0
-        self.robber_ration: int = 0
     
     def pick_out_cop_number(self) -> None:
         """
