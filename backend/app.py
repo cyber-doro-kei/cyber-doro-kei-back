@@ -11,7 +11,7 @@ from modules.timer.timer import Timer
 
 # COMMENT: Firebase初期化
 db_init = DB()
-db = db_init.connection()
+client, db = db_init.connection()
     
 # 日本時間のタイムゾーンを取得
 jst = pytz.timezone('Asia/Tokyo')
@@ -39,13 +39,13 @@ async def assign_member(room_id: str):
 
 
 @app.post("/start/timer/{room_id}")
-async def start_timer(room_id: str, req: StartTimer):
+async def start_timer(room_id: str):
     try:
-        timer = Timer(db, room_id, jst)
+        timer = Timer(client, room_id, jst, db)
         timer.start_timer()
 
         command = ['python','modules/event/execute.py', room_id]
-        subprocess.Popen(command) # COMMENT: サブプロセスでDB監視を実施
+        # subprocess.Popen(command) # COMMENT: サブプロセスでDB監視を実施
 
         response = {"message": "Data added to Firebase successfully"}
         return JSONResponse(status_code=200, content=response)

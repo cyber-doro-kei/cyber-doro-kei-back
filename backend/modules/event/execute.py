@@ -8,7 +8,7 @@ from db import DB
 
 # COMMENT: Firebase初期化
 db_init = DB()
-db = db_init.connection()
+client, db = db_init.connection()
 
 room_id = sys.argv[1]
 event = Event(db, room_id)

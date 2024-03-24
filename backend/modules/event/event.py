@@ -104,6 +104,7 @@ class Event:
         while end_time > datetime.now():
             is_finish: bool = self.check_db()
             if is_finish:  # COMMENT: eventが発令されたらループを抜ける
+                print("break")
                 break
             time.sleep(60)  # COMMENT: 60秒置きに実行
 
