@@ -38,4 +38,5 @@ class Timer:
 
         rooms_ref = self.db.collection("rooms")
         room_ref = rooms_ref.document(self.room_id)
+        
         room_ref.update({"is_active": False})
