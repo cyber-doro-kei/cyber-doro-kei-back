@@ -53,3 +53,14 @@ async def start_timer(room_id: str, req: StartTimer):
     except Exception as e:
         # エラーが発生した場合はHTTP例外を発生させる
         raise HTTPException(status_code=500, detail=f"Error adding data to Firebase: {str(e)}")
+
+
+@app.post("/finish/{room_id}")
+async def finish_game(room_id: str):
+    try:
+        response = {"message": "The game in this room({room_id}) is over"}
+        return JSONResponse(status_code=200, content=response)
+        
+    except Exception as e:
+        # エラーが発生した場合はHTTP例外を発生させる
+        raise HTTPException(status_code=500, detail=f"Error adding data to Firebase: {str(e)}")
