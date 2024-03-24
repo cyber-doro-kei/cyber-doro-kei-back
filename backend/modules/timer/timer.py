@@ -26,3 +26,16 @@ class Timer:
         # COMMENT: Firebaseのroomsコレクションへの参照を取得し、指定されたドキュメントにデータを追加
         doc_ref = self.db.collection("rooms").document(self.room_id)
         doc_ref.update(data)
+
+    def finish_timer(self) -> None:
+        """
+        description: タイマーを終了(ゲームを終了)
+        -----------------
+        none
+        -----------------
+        return none
+        """
+
+        rooms_ref = self.db.collection("rooms")
+        room_ref = rooms_ref.document(self.room_id)
+        room_ref.update({"is_active": False})
