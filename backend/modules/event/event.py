@@ -51,6 +51,21 @@ class Event:
             return True
         else:
             return False
+    
+    def is_game_continue(self) -> bool:
+        """
+        description: ゲームが行われているかを判定する
+        -------------------
+        none
+        -------------------
+        return: boolean -> ゲームが続行中か否かのフラグ Trueの場合、ゲームが続行中であると見なす
+        """
+
+        doc_ref = self.db.collection("rooms").document(self.room_id)
+        doc_snapshot = doc_ref.get()
+        is_active: bool = doc_snapshot.get("is_active")
+
+        return is_active
 
     def add_event_logs(self) -> None:
         """
@@ -84,7 +99,7 @@ class Event:
             return True
         else:
             return False
-
+        
     def event_start(self) -> None:
         """
         description: イベントの開始について取り扱う
@@ -103,8 +118,12 @@ class Event:
         # COMMENT: プレイ時間を超えた場合、強制的にDBの監視を停止する
         while end_time > datetime.now():
             is_finish: bool = self.check_db()
+            is_game_continue: bool = self.is_game_continue()
             if is_finish:  # COMMENT: eventが発令されたらループを抜ける
+                print("Event is started")
+                break
+            if not is_game_continue: # COMMENT: ゲーム自体が終了した場合、ループから抜ける
+                print("The game in this room is over")
                 break
             time.sleep(60)  # COMMENT: 60秒置きに実行
-
-        print("Event is started")
+    
