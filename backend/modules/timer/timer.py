@@ -40,3 +40,4 @@ class Timer:
         room_ref = rooms_ref.document(self.room_id)
         
         room_ref.update({"is_active": False})
+        # COMMENT: 今後ゲーム終了時に何かしらDBを書き換えたい場合、ここに追記すればよい
