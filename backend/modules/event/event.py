@@ -129,23 +129,25 @@ class Event:
         """
         description: ○○を捕まえろeventの○○を決める
         -------------------
-        str: room_id(roomDocumentId)
+        none
         -------------------
         return: str -> user_id
         """
+        # COMMENT: 泥棒で捕まってない人を取得
+        free_robber_users = self.users_ref.where("room_id", "==", self.room_id).where("is_cop", "==" ,False).where("is_under_arrest", "==", False).stream()
+        free_robber_users_list = list(free_robber_users)
+        random.shtffle(free_robber_users_listusers_list) # COMMENT : シャッフルする
         
-    # def user_snapshot(doc_snapshot, changes, read_time):
-    #     """
-    #     ドキュメントの変更時に呼び出され、変更後のドキュメントデータを返す
-    #     """
-    #     for doc in doc_snapshot:
-    #         doc_data = doc.to_dict()
-    #     return doc_data
+        target = free_robber_users_list[0]
+        
+        # COMMENT:選ばれたユーザーのドキュメントを取得
+        target_doc = self.users_ref.document(target.id).get()
 
-    def check_event_clear(self) -> bool:
+        return target_doc.id
+    
+    def check_event_clear(self,user_id) -> bool:
         """
         description: 指定されたuser_idのドキュメントのis_under_arrestフィールドがtrueになるまで10分間監視する。
-                user_ref = self.users_ref.document(user_id)
                      10分経ってもtrueにならなかった場合はFalseを返す。
         -------------------
         user_id: str -> 監視対象のユーザーID
@@ -169,4 +171,26 @@ class Event:
 
         return False
 
-    return False
+    def event_release(self) -> None:
+        """
+        description: イベントが成功したとき捕まっている人の半数を解放する
+        -------------------
+        none
+        -------------------
+        return: none
+        """
+        # COMMENT: 泥棒で捕まってる人を取得
+        arrested_users = self.users_ref.where("room_id", "==", self.room_id).where("is_cop", "==" ,False).where("is_under_arrest", "==", True).stream()        arrested_users_list = list(arrested_users)
+        
+        # COMMENT:解放する人数を計算
+        num_to_release = len(arrested_users_list) // 2
+
+        # COMMENT:シャッフル
+        random.shuffle(arrested_users_list)
+
+        # COMMENT:解放処理
+        for i in range(num_to_release):
+            user_doc = arrested_users_list[i]
+            user_ref = self.users_ref.document(user_doc.id)
+            user_ref.update({"is_under_arrest": False})
+        
