@@ -77,13 +77,11 @@ class Event:
         """
 
         data = {
-            "room_id": self.room_id,
-            "event_name": "テストイベント",
-            "event_output": "",
+            "date": datetime.now().isoformat(),
+            "text": "テストイベント"
         }
-        event_logs_ref = self.db.collection("event_logs")
-        doc_ref = event_logs_ref.document(self.room_id)
-        doc_ref.update(data)
+        event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
+        event_logs_ref.set(data)
 
     def check_db(self) -> bool:
         """
