@@ -125,3 +125,48 @@ class Event:
                 break
             time.sleep(60)  # COMMENT: 60秒置きに実行
     
+    def select_event_target(self) -> str:
+        """
+        description: ○○を捕まえろeventの○○を決める
+        -------------------
+        str: room_id(roomDocumentId)
+        -------------------
+        return: str -> user_id
+        """
+        
+    # def user_snapshot(doc_snapshot, changes, read_time):
+    #     """
+    #     ドキュメントの変更時に呼び出され、変更後のドキュメントデータを返す
+    #     """
+    #     for doc in doc_snapshot:
+    #         doc_data = doc.to_dict()
+    #     return doc_data
+
+    def check_event_clear(self) -> bool:
+        """
+        description: 指定されたuser_idのドキュメントのis_under_arrestフィールドがtrueになるまで10分間監視する。
+                user_ref = self.users_ref.document(user_id)
+                     10分経ってもtrueにならなかった場合はFalseを返す。
+        -------------------
+        user_id: str -> 監視対象のユーザーID
+        -------------------
+        return: boolean -> イベントが成功したか否かのフラグ 
+                           is_under_arrestがtrueになったらTrue、10分経ってもFalseの場合はFalse
+        """
+        start_time = time.time()  # COMMENT: 開始時刻を記録
+        timeout = 600  # COMMENT: 10分のタイムアウト時間(秒)
+        
+        while True:
+            user_ref = self.users_ref.document(user_id)
+            doc_snapshot = user_ref.get()
+
+            if doc_snapshot.exists and doc_snapshot.get("is_under_arrest"):
+                return True
+            
+            # COMMENT: 10分なにもなかったらfalseを返す
+            if time.time() - start_time > timeout:
+                break
+
+        return False
+
+    return False
