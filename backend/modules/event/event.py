@@ -1,6 +1,6 @@
 import time
 from datetime import datetime, timedelta
-
+import random
 
 class Event:
     """
@@ -119,6 +119,10 @@ class Event:
             is_game_continue: bool = self.is_game_continue()
             if is_finish:  # COMMENT: eventが発令されたらループを抜ける
                 print("Event is started")
+                target_id = self.select_event_target()
+                if self.check_event_clear(target_id):
+                    event_release()
+                
                 break
             if not is_game_continue: # COMMENT: ゲーム自体が終了した場合、ループから抜ける
                 print("The game in this room is over")
@@ -134,14 +138,15 @@ class Event:
         return: str -> user_id
         """
         # COMMENT: 泥棒で捕まってない人を取得
-        free_robber_users = self.users_ref.where("room_id", "==", self.room_id).where("is_cop", "==" ,False).where("is_under_arrest", "==", False).stream()
-        free_robber_users_list = list(free_robber_users)
-        random.shtffle(free_robber_users_listusers_list) # COMMENT : シャッフルする
-        
-        target = free_robber_users_list[0]
+        users_ref = self.db.collection("users")
+        free_robber_users = users_ref.where("room_id", "==", self.room_id).where("is_cop", "==" ,False).where("is_under_arrest", "==", False).stream()
+        # free_robber_users_list = list(free_robber_users)
+        # random.shuffle(free_robber_users_list) # COMMENT : シャッフルする
+        # print(free_robber_users_list)
+        # target = free_robber_users_list[0]
         
         # COMMENT:選ばれたユーザーのドキュメントを取得
-        target_doc = self.users_ref.document(target.id).get()
+        target_doc = users_ref.document(target.id).get()
 
         return target_doc.id
     
@@ -159,8 +164,9 @@ class Event:
         timeout = 600  # COMMENT: 10分のタイムアウト時間(秒)
         
         while True:
-            user_ref = self.users_ref.document(user_id)
-            doc_snapshot = user_ref.get()
+            users_ref = self.db.collection("users")
+            target_ref = users_ref.document(user_id)
+            doc_snapshot = target_ref.get()
 
             if doc_snapshot.exists and doc_snapshot.get("is_under_arrest"):
                 return True
@@ -180,7 +186,9 @@ class Event:
         return: none
         """
         # COMMENT: 泥棒で捕まってる人を取得
-        arrested_users = self.users_ref.where("room_id", "==", self.room_id).where("is_cop", "==" ,False).where("is_under_arrest", "==", True).stream()        arrested_users_list = list(arrested_users)
+        users_ref = self.db.collection("users")
+        arrested_users = users_ref.where("room_id", "==", self.room_id).where("is_cop", "==" ,False).where("is_under_arrest", "==", True).stream()        
+        arrested_users_list = list(arrested_users)
         
         # COMMENT:解放する人数を計算
         num_to_release = len(arrested_users_list) // 2
@@ -191,6 +199,6 @@ class Event:
         # COMMENT:解放処理
         for i in range(num_to_release):
             user_doc = arrested_users_list[i]
-            user_ref = self.users_ref.document(user_doc.id)
+            user_ref = users_ref.document(user_doc.id)
             user_ref.update({"is_under_arrest": False})
         
