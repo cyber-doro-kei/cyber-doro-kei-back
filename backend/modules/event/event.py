@@ -121,7 +121,7 @@ class Event:
                 print("Event is started")
                 target_id = self.select_event_target()
                 if self.check_event_clear(target_id):
-                    event_release()
+                    self.event_release()
                 
                 break
             if not is_game_continue: # COMMENT: ゲーム自体が終了した場合、ループから抜ける
@@ -139,15 +139,17 @@ class Event:
         """
         # COMMENT: 泥棒で捕まってない人を取得
         users_ref = self.db.collection("users")
-        free_robber_users = users_ref.where("room_id", "==", self.room_id).where("is_cop", "==" ,False).where("is_under_arrest", "==", False).stream()
-        # free_robber_users_list = list(free_robber_users)
-        # random.shuffle(free_robber_users_list) # COMMENT : シャッフルする
-        # print(free_robber_users_list)
-        # target = free_robber_users_list[0]
-        
+        free_robber_users = users_ref.where("room_id", "==", self.room_id).where("is_cop", "==" ,False).where("is_under_arrest", "==", False).get()
+        print(free_robber_users)
+        free_robber_users_list = list(free_robber_users)
+        random.shuffle(free_robber_users_list) # COMMENT : シャッフルする
+        print(free_robber_users_list)
+        target = free_robber_users_list[0]
+        print(target)
         # COMMENT:選ばれたユーザーのドキュメントを取得
         target_doc = users_ref.document(target.id).get()
-
+        print(target_doc)
+        print(target_doc.id)
         return target_doc.id
     
     def check_event_clear(self,user_id) -> bool:
