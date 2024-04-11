@@ -1,6 +1,7 @@
 import time
 from datetime import datetime, timedelta
 import random
+from google.cloud.firestore import FieldFilter
 
 class Event:
     """
@@ -118,9 +119,11 @@ class Event:
             is_finish: bool = self.check_db()
             is_game_continue: bool = self.is_game_continue()
             if is_finish:  # COMMENT: eventが発令されたらループを抜ける
-                print("Event is started")
+                print("Event is started") #COMMENT: DEBUG用
                 target_id = self.select_event_target()
+                # is_finish = False
                 if self.check_event_clear(target_id):
+                    print("target is selected") #COMMENT: DEBUG用
                     self.event_release()
                 
                 break
@@ -139,7 +142,7 @@ class Event:
         """
         # COMMENT: 泥棒で捕まってない人を取得
         users_ref = self.db.collection("users")
-        free_robber_users = users_ref.where("room_id", "==", self.room_id).where("is_cop", "==" ,False).where("is_under_arrest", "==", False).get()
+        free_robber_users = users_ref.where(filter=FieldFilter("room_id", "==", self.room_id)).where(filter=FieldFilter("is_cop", "==" ,False)).where(filter=FieldFilter("is_under_arrest", "==" ,False)).get()
         print(free_robber_users)
         free_robber_users_list = list(free_robber_users)
         random.shuffle(free_robber_users_list) # COMMENT : シャッフルする
@@ -150,6 +153,7 @@ class Event:
         target_doc = users_ref.document(target.id).get()
         print(target_doc)
         print(target_doc.id)
+        #TODO: "イベントが発令しました。10分以内に警察陣営が○○を捕まえないと牢屋の半数が解放されます。"とevent_logs/{room_id}/logs/ に書き込む
         return target_doc.id
     
     def check_event_clear(self,user_id) -> bool:
@@ -171,10 +175,12 @@ class Event:
             doc_snapshot = target_ref.get()
 
             if doc_snapshot.exists and doc_snapshot.get("is_under_arrest"):
+                #TODO: "○○が逮捕されました。イベントクリアです"とevent_logs/{room_id}/logs/ に書き込む
                 return True
             
             # COMMENT: 10分なにもなかったらfalseを返す
             if time.time() - start_time > timeout:
+                #TODO: "イベント失敗です。捕まっている泥棒の半数が解放されます。"とevent_logs/{room_id}/logs/ に書き込む
                 break
 
         return False
@@ -194,7 +200,7 @@ class Event:
         
         # COMMENT:解放する人数を計算
         num_to_release = len(arrested_users_list) // 2
-
+        print(num_to_release)
         # COMMENT:シャッフル
         random.shuffle(arrested_users_list)
 
@@ -202,5 +208,8 @@ class Event:
         for i in range(num_to_release):
             user_doc = arrested_users_list[i]
             user_ref = users_ref.document(user_doc.id)
+            
+            # TODO: "○○はイベント失敗により解放されました。"とevent_logs/{room_id}/logs/ に書き込む
             user_ref.update({"is_under_arrest": False})
+        print("is released")
         
