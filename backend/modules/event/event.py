@@ -12,6 +12,7 @@ class Event:
         self.db = db
         self.room_id: str = room_id
         self.robber_num = 0
+        self.event_target_robber_name: str = ""
 
     def count_robber_num(self) -> None:
         """
@@ -119,11 +120,8 @@ class Event:
             is_finish: bool = self.check_db()
             is_game_continue: bool = self.is_game_continue()
             if is_finish:  # COMMENT: eventが発令されたらループを抜ける
-                print("Event is started") #COMMENT: DEBUG用
                 target_id = self.select_event_target()
-                # is_finish = False
                 if self.check_event_clear(target_id):
-                    print("target is selected") #COMMENT: DEBUG用
                     self.event_release()
                 
                 break
@@ -143,17 +141,23 @@ class Event:
         # COMMENT: 泥棒で捕まってない人を取得
         users_ref = self.db.collection("users")
         free_robber_users = users_ref.where(filter=FieldFilter("room_id", "==", self.room_id)).where(filter=FieldFilter("is_cop", "==" ,False)).where(filter=FieldFilter("is_under_arrest", "==" ,False)).get()
-        print(free_robber_users)
         free_robber_users_list = list(free_robber_users)
         random.shuffle(free_robber_users_list) # COMMENT : シャッフルする
-        print(free_robber_users_list)
         target = free_robber_users_list[0]
-        print(target)
         # COMMENT:選ばれたユーザーのドキュメントを取得
         target_doc = users_ref.document(target.id).get()
-        print(target_doc)
-        print(target_doc.id)
-        #TODO: "イベントが発令しました。10分以内に警察陣営が○○を捕まえないと牢屋の半数が解放されます。"とevent_logs/{room_id}/logs/ に書き込む
+
+        doc_ref = self.db.collection("users").document(target_doc.id)
+        doc_snapshot = doc_ref.get()
+        self.event_target_robber_name = doc_snapshot.get("name")
+
+        event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
+        data = {
+            "date": datetime.now().isoformat(),
+            "text": f'イベントが発令しました。10分以内に警察陣営が{self.event_target_robber_name}を捕まえないと牢屋の半数が解放されます。'
+        }
+        event_logs_ref.set(data)
+
         return target_doc.id
     
     def check_event_clear(self,user_id) -> bool:
@@ -175,12 +179,24 @@ class Event:
             doc_snapshot = target_ref.get()
 
             if doc_snapshot.exists and doc_snapshot.get("is_under_arrest"):
-                #TODO: "○○が逮捕されました。イベントクリアです"とevent_logs/{room_id}/logs/ に書き込む
+                event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
+                data = {
+                    "date": datetime.now().isoformat(),
+                    "text": f'{self.event_target_robber_name}が逮捕されました。イベントクリアです'
+                }
+                event_logs_ref.set(data)
+
                 return True
             
             # COMMENT: 10分なにもなかったらfalseを返す
             if time.time() - start_time > timeout:
-                #TODO: "イベント失敗です。捕まっている泥棒の半数が解放されます。"とevent_logs/{room_id}/logs/ に書き込む
+                event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
+                data = {
+                    "date": datetime.now().isoformat(),
+                    "text": f'イベント失敗です。捕まっている泥棒の半数が解放されます。'
+                }
+                event_logs_ref.set(data)
+
                 break
 
         return False
@@ -208,8 +224,11 @@ class Event:
         for i in range(num_to_release):
             user_doc = arrested_users_list[i]
             user_ref = users_ref.document(user_doc.id)
-            
-            # TODO: "○○はイベント失敗により解放されました。"とevent_logs/{room_id}/logs/ に書き込む
+            event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
+            data = {
+                "date": datetime.now().isoformat(),
+                "text": f'{self.event_target_robber_name}はイベント失敗により解放されました。'
+            }
+            event_logs_ref.set(data)
             user_ref.update({"is_under_arrest": False})
-        print("is released")
         
