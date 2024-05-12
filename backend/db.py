@@ -25,7 +25,9 @@ class DB:
         load_dotenv()
 
         #環境変数からFirebaseの秘密鍵ファイルのパスを取得
-        firebase_key_path = os.getenv("FIREBASE_KEY_PATH")
+        firebase_key = os.getenv("FIREBASE_KEY_PATH")
+        program_directory = os.path.dirname(os.path.abspath(__file__))
+        firebase_key_path = program_directory+firebase_key
 
         #Firebase初期化
         cred = credentials.Certificate(firebase_key_path)
