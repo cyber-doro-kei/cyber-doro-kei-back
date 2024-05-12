@@ -1,7 +1,7 @@
 import subprocess
 
 import pytz
-from cyber_doro_kei_back.db import DB
+from cyber_doro_kei_back.backend.db import DB
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
