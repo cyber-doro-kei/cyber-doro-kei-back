@@ -5,9 +5,9 @@ from cyber_doro_kei_back.db import DB
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
-from models import StartTimer
-from modules.assign.assign import Assign
-from modules.timer.timer import Timer
+from cyber_doro_kei_back.models import StartTimer
+from cyber_doro_kei_back.modules.assign.assign import Assign
+from cyber_doro_kei_back.modules.timer.timer import Timer
 
 # COMMENT: Firebase初期化
 db_init = DB()
