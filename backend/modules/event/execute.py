@@ -4,7 +4,7 @@ import sys
 from event import Event
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from cyber_doro_kei_back.db import DB
+from cyber_doro_kei_back.backend.db import DB
 
 # COMMENT: Firebase初期化
 db_init = DB()
