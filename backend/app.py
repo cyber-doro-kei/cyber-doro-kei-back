@@ -1,7 +1,7 @@
 import subprocess
 
 import pytz
-from db import DB
+from .db import DB
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
