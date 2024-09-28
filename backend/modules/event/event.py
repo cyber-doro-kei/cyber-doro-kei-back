@@ -108,7 +108,8 @@ class Event:
         -------------------
         return: none
         """
-
+        # DEBUG:
+        print("Event Start")
         doc_ref = self.db.collection("rooms").document(self.room_id)
         doc_snapshot = doc_ref.get()
         play_time_seconds = doc_snapshot.get("play_time_seconds")

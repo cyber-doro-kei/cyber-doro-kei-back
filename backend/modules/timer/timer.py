@@ -25,6 +25,8 @@ class Timer:
 
         # COMMENT: Firebaseのroomsコレクションへの参照を取得し、指定されたドキュメントにデータを追加
         doc_ref = self.db.collection("rooms").document(self.room_id)
+        # DEBUG:
+        print(f"room_id: {self.room_id}")
         doc_ref.update(data)
 
     def finish_timer(self) -> None:
