@@ -1,5 +1,5 @@
 from datetime import datetime
-
+from google.cloud import firestore
 
 class Timer:
     """
@@ -20,7 +20,9 @@ class Timer:
         return none
         """
 
-        started_at = datetime.now(self.jst).isoformat()
+        # started_at = datetime.now(self.jst).isoformat()
+        # Firestoreのサーバータイムスタンプを使用
+        started_at = firestore.SERVER_TIMESTAMP
         data = {"started_at": started_at, "is_active": True}
 
         # COMMENT: Firebaseのroomsコレクションへの参照を取得し、指定されたドキュメントにデータを追加
