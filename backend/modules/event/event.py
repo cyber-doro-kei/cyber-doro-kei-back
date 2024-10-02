@@ -57,7 +57,7 @@ class Event:
         for user in users:
             user_ref = users_ref.document(user.id)
             user_snapshot = user_ref.get()
-            is_under_arrest: bool = user_snapshot.get("is_under_arrest")
+            is_under_arrest: bool = user_snapshot.get("is_under_arrest",False)
             if is_under_arrest:
                 arrest_num += 1
                 
@@ -104,6 +104,13 @@ class Event:
         }
         event_logs_ref = self.db.collection("event_logs")
         doc_ref = event_logs_ref.document(self.room_id)
+        # ドキュメントが存在するか確認
+        if doc_ref.get().exists:
+            doc_ref.update(data)
+        else:
+            # ドキュメントが存在しない場合は新規作成
+            doc_ref.set(data)
+            
         doc_ref.update(data)
 
     def check_db(self) -> bool:
@@ -131,21 +138,24 @@ class Event:
         """
         # DEBUG:
         print("Event Start")
-        doc_ref = self.db.collection("rooms").document(self.room_id)
-        doc_snapshot = doc_ref.get()
-        play_time_seconds = doc_snapshot.get("play_time_seconds")
+        try:
+            doc_ref = self.db.collection("rooms").document(self.room_id)
+            doc_snapshot = doc_ref.get()
+            play_time_seconds = doc_snapshot.get("play_time_seconds")
 
-        start_time: datetime = datetime.now()
-        end_time: datetime = start_time + timedelta(seconds=play_time_seconds)
-        # COMMENT: プレイ時間を超えた場合、強制的にDBの監視を停止する
-        while end_time > datetime.now():
-            is_finish: bool = self.check_db()
-            is_game_continue: bool = self.is_game_continue()
-            if is_finish:  # COMMENT: eventが発令されたらループを抜ける
-                print("Event is started")
-                break
-            if not is_game_continue: # COMMENT: ゲーム自体が終了した場合、ループから抜ける
-                print("The game in this room is over")
-                break
-            time.sleep(60)  # COMMENT: 60秒置きに実行
+            start_time: datetime = datetime.now()
+            end_time: datetime = start_time + timedelta(seconds=play_time_seconds)
+            # COMMENT: プレイ時間を超えた場合、強制的にDBの監視を停止する
+            while end_time > datetime.now():
+                is_finish: bool = self.check_db()
+                is_game_continue: bool = self.is_game_continue()
+                if is_finish:  # COMMENT: eventが発令されたらループを抜ける
+                    print("Event is started")
+                    break
+                if not is_game_continue: # COMMENT: ゲーム自体が終了した場合、ループから抜ける
+                    print("The game in this room is over")
+                    break
+                time.sleep(60)  # COMMENT: 60秒置きに実行
+        except Exception as e:
+            print(f"An error occurred in event_start: {str(e)}")
     
