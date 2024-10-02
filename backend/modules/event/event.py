@@ -25,7 +25,7 @@ class Event:
 
         room_ref = self.db.collection("rooms").document(self.room_id)
         room_snapshot = room_ref.get()
-        self.robber_num: int = room_snapshot.get("robber_num")
+        self.robber_num: int = room_snapshot.to_dict().get("robber_num")
 
     def get_game_info(self) -> None:
         """
@@ -63,7 +63,7 @@ class Event:
         for user in users:
             user_ref = users_ref.document(user.id)
             user_snapshot = user_ref.get()
-            is_under_arrest: bool = user_snapshot.get("is_under_arrest",False)
+            is_under_arrest: bool = user_snapshot.to_dict().get("is_under_arrest",False)
             if is_under_arrest:
                 arrest_num += 1
                 
@@ -90,7 +90,7 @@ class Event:
 
         doc_ref = self.db.collection("rooms").document(self.room_id)
         doc_snapshot = doc_ref.get()
-        is_active: bool = doc_snapshot.get("is_active")
+        is_active: bool = doc_snapshot.to_dict().get("is_active")
 
         return is_active
 
