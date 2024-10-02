@@ -149,7 +149,7 @@ class Event:
             doc_snapshot = doc_ref.get()
             print(doc_snapshot)
             print(doc_snapshot.to_dict())
-            play_time_seconds = doc_snapshot.get("play_time_seconds")
+            play_time_seconds = doc_snapshot.to_dict().get("play_time_seconds")
 
             start_time: datetime = datetime.now()
             end_time: datetime = start_time + timedelta(minutes=play_time_seconds)
