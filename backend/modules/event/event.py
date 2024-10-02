@@ -66,11 +66,12 @@ class Event:
             is_under_arrest: bool = user_snapshot.to_dict().get("is_under_arrest",False)
             if is_under_arrest:
                 arrest_num += 1
-                
+        print(f"arrest_num: {arrest_num}") 
         # COMMENT: プレイ時間が半数経過でイベント発令
         self.get_game_info()
         time_elapsed = datetime.now() - self.started_at
         half_time_passed = time_elapsed >= timedelta(seconds=self.play_time // 2)
+        print(f"half_time_passed: {half_time_passed}")
 
         if (
             self.robber_num // 2 <= arrest_num or half_time_passed
@@ -91,6 +92,7 @@ class Event:
         doc_ref = self.db.collection("rooms").document(self.room_id)
         doc_snapshot = doc_ref.get()
         is_active: bool = doc_snapshot.to_dict().get("is_active")
+        print(f"is_active: {is_active}")
 
         return is_active
 
@@ -110,6 +112,7 @@ class Event:
         }
         event_logs_ref = self.db.collection("event_logs")
         doc_ref = event_logs_ref.document(self.room_id)
+        print(f"doc_ref.to_dict(): {doc_ref.get().to_dict()}")
         # ドキュメントが存在するか確認
         if doc_ref.get().exists:
             doc_ref.update(data)
