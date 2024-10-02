@@ -112,12 +112,14 @@ class Event:
         }
         event_logs_ref = self.db.collection("event_logs")
         doc_ref = event_logs_ref.document(self.room_id)
-        print(f"doc_ref.to_dict(): {doc_ref.get().to_dict()}")
+        print(f"doc_ref.to_dict(): {doc_ref.to_dict().get()}")
         # ドキュメントが存在するか確認
         if doc_ref.get().exists:
             doc_ref.update(data)
+            print("Document exists")
         else:
             # ドキュメントが存在しない場合は新規作成
+            print("Document does not exist and set data")
             doc_ref.set(data)
             
         doc_ref.update(data)
