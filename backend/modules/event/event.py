@@ -1,6 +1,7 @@
 import time
 from datetime import datetime, timedelta
-
+import random
+from google.cloud.firestore import FieldFilter
 
 class Event:
     """
@@ -11,6 +12,7 @@ class Event:
         self.db = db
         self.room_id: str = room_id
         self.robber_num = 0
+        self.event_target_robber_name: str = ""
         self.started_at = None
         self.play_time = None
 
@@ -106,9 +108,8 @@ class Event:
         """
 
         data = {
-            "room_id": self.room_id,
-            "event_name": "テストイベント",
-            "event_output": "",
+            "date": datetime.now().isoformat(),
+            "text": "テストイベント"
         }
         event_logs_ref = self.db.collection("event_logs")
         doc_ref = event_logs_ref.document(self.room_id)
@@ -162,16 +163,122 @@ class Event:
             # COMMENT: プレイ時間を超えた場合、強制的にDBの監視を停止する
             while end_time > datetime.now():
                 is_finish: bool = self.check_db()
-                print(f"is_finish: {is_finish}")
                 is_game_continue: bool = self.is_game_continue()
-                print(f"is_finish: {is_game_continue}")
                 if is_finish:  # COMMENT: eventが発令されたらループを抜ける
-                    print("Event is started")
+                    target_id = self.select_event_target()
+                    if self.check_event_clear(target_id):
+                        self.event_release()
+                        print("release done")
+
                     break
                 if not is_game_continue: # COMMENT: ゲーム自体が終了した場合、ループから抜ける
                     print("The game in this room is over")
                     break
                 time.sleep(60)  # COMMENT: 60秒置きに実行
+            
         except Exception as e:
-            print(f"An error occurred in event_start: {str(e)}")
+            print(f"Error: {e}")
+            return
     
+    def select_event_target(self) -> str:
+        """
+        description: ○○を捕まえろeventの○○を決める
+        -------------------
+        none
+        -------------------
+        return: str -> user_id
+        """
+        # COMMENT: 泥棒で捕まってない人を取得
+        users_ref = self.db.collection("users")
+        free_robber_users = users_ref.where(filter=FieldFilter("room_id", "==", self.room_id)).where(filter=FieldFilter("is_cop", "==" ,False)).where(filter=FieldFilter("is_under_arrest", "==" ,False)).get()
+        free_robber_users_list = list(free_robber_users)
+        random.shuffle(free_robber_users_list) # COMMENT : シャッフルする
+        target = free_robber_users_list[0]
+        # COMMENT:選ばれたユーザーのドキュメントを取得
+        target_doc = users_ref.document(target.id).get()
+
+        doc_ref = self.db.collection("users").document(target_doc.id)
+        doc_snapshot = doc_ref.get()
+        self.event_target_robber_name = doc_snapshot.get("name")
+
+        event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
+        data = {
+            "date": datetime.now().isoformat(),
+            "text": f'イベントが発令しました。10分以内に警察陣営が{self.event_target_robber_name}を捕まえないと牢屋の半数が解放されます。'
+        }
+        event_logs_ref.set(data)
+
+        return target_doc.id
+    
+    def check_event_clear(self,user_id) -> bool:
+        """
+        description: 指定されたuser_idのドキュメントのis_under_arrestフィールドがtrueになるまで10分間監視する。
+                     10分経ってもtrueにならなかった場合はFalseを返す。
+        -------------------
+        user_id: str -> 監視対象のユーザーID
+        -------------------
+        return: boolean -> イベントが成功したか否かのフラグ 
+                           is_under_arrestがtrueになったらTrue、10分経ってもFalseの場合はFalse
+        """
+        start_time = time.time()  # COMMENT: 開始時刻を記録
+        timeout = 600  # COMMENT: 10分のタイムアウト時間(秒)
+        
+        while True:
+            users_ref = self.db.collection("users")
+            target_ref = users_ref.document(user_id)
+            doc_snapshot = target_ref.get()
+
+            if doc_snapshot.exists and doc_snapshot.get("is_under_arrest"):
+                event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
+                data = {
+                    "date": datetime.now().isoformat(),
+                    "text": f'{self.event_target_robber_name}が逮捕されました。イベントクリアです'
+                }
+                event_logs_ref.set(data)
+
+                return True
+            
+            # COMMENT: 10分なにもなかったらfalseを返す
+            if time.time() - start_time > timeout:
+                event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
+                data = {
+                    "date": datetime.now().isoformat(),
+                    "text": f'イベント失敗です。捕まっている泥棒の半数が解放されます。'
+                }
+                event_logs_ref.set(data)
+
+                break
+
+        return False
+
+    def event_release(self) -> None:
+        """
+        description: イベントが成功したとき捕まっている人の半数を解放する
+        -------------------
+        none
+        -------------------
+        return: none
+        """
+        # COMMENT: 泥棒で捕まってる人を取得
+        users_ref = self.db.collection("users")
+        arrested_users = users_ref.where("room_id", "==", self.room_id).where("is_cop", "==" ,False).where("is_under_arrest", "==", True).stream()        
+        arrested_users_list = list(arrested_users)
+        
+        # COMMENT:解放する人数を計算
+        num_to_release = len(arrested_users_list) // 2
+        print(num_to_release)
+        # COMMENT:シャッフル
+        random.shuffle(arrested_users_list)
+
+        # COMMENT:解放処理
+        for i in range(num_to_release):
+            user_doc = arrested_users_list[i]
+            user_ref = users_ref.document(user_doc.id)
+            event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
+            data = {
+                "date": datetime.now().isoformat(),
+                "text": f'{self.event_target_robber_name}はイベント失敗により解放されました。'
+            }
+            event_logs_ref.set(data)
+            user_ref.update({"is_under_arrest": False})
+        

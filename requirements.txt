@@ -16,3 +16,4 @@ firebase-admin
 requests
 python-dotenv
 pytz
+google-cloud-firestore
