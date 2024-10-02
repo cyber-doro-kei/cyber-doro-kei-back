@@ -37,8 +37,14 @@ class Event:
         """
         room_ref = self.db.collection("rooms").document(self.room_id)
         room_snapshot = room_ref.get()
-        self.started_at = room_snapshot.get("started_at").replace(tzinfo=None)
-        self.play_time = room_snapshot.get("play_time_seconds")
+        room_data = room_snapshot.to_dict()
+        if room_data:
+            self.started_at = room_data.get("started_at")
+            if self.started_at:
+                self.started_at = self.started_at.replace(tzinfo=None)
+            self.play_time = room_data.get("play_time_seconds")
+        else:
+            print(f"No data found for room {self.room_id}")
         
     def is_event_start(self) -> bool:
         """
