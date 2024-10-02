@@ -150,13 +150,16 @@ class Event:
             print(doc_snapshot)
             print(doc_snapshot.to_dict())
             play_time_seconds = doc_snapshot.to_dict().get("play_time_seconds")
+            print(f"play_time_seconds", play_time_seconds)
 
             start_time: datetime = datetime.now()
             end_time: datetime = start_time + timedelta(minutes=play_time_seconds)
             # COMMENT: プレイ時間を超えた場合、強制的にDBの監視を停止する
             while end_time > datetime.now():
                 is_finish: bool = self.check_db()
+                print(f"is_finish: {is_finish}")
                 is_game_continue: bool = self.is_game_continue()
+                print(f"is_finish: {is_game_continue}")
                 if is_finish:  # COMMENT: eventが発令されたらループを抜ける
                     print("Event is started")
                     break
