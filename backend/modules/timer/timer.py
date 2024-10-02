@@ -21,7 +21,7 @@ class Timer:
         """
 
         # started_at = datetime.now(self.jst).isoformat()
-        started_at = firestore.TIMESTAMP.now()
+        started_at = firestore.SERVER_TIMESTAMP
         data = {"started_at": started_at, "is_active": True}
 
         # COMMENT: Firebaseのroomsコレクションへの参照を取得し、指定されたドキュメントにデータを追加
