@@ -11,6 +11,8 @@ class Event:
         self.db = db
         self.room_id: str = room_id
         self.robber_num = 0
+        self.started_at = None
+        self.play_time = None
 
     def count_robber_num(self) -> None:
         """
@@ -25,6 +27,19 @@ class Event:
         room_snapshot = room_ref.get()
         self.robber_num: int = room_snapshot.get("robber_num")
 
+    def get_game_info(self) -> None:
+        """
+        description: ゲーム開始時刻とプレイ時間を取得する
+        -------------------
+        none
+        -------------------
+        return: None
+        """
+        room_ref = self.db.collection("rooms").document(self.room_id)
+        room_snapshot = room_ref.get()
+        self.started_at = room_snapshot.get("started_at").replace(tzinfo=None)
+        self.play_time = room_snapshot.get("play_time_seconds")
+        
     def is_event_start(self) -> bool:
         """
         description: イベントを開始するか否かの条件判定
@@ -45,8 +60,14 @@ class Event:
             is_under_arrest: bool = user_snapshot.get("is_under_arrest")
             if is_under_arrest:
                 arrest_num += 1
+                
+        # COMMENT: プレイ時間が半数経過でイベント発令
+        self.get_game_info()
+        time_elapsed = datetime.now() - self.started_at
+        half_time_passed = time_elapsed >= timedelta(seconds=self.play_time // 2)
+
         if (
-            self.robber_num // 2 <= arrest_num
+            self.robber_num // 2 <= arrest_num or half_time_passed
         ):  # COMMENT: 半数以上が逮捕されたらイベント発令
             return True
         else:
