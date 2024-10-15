@@ -414,6 +414,7 @@ class Event:
                 break
             time.sleep(60)  # COMMENT: 60秒置きに実行
             print("60 time sleep")
+        print("while finish")
     
     def select_event_target(self) -> str:
         """
