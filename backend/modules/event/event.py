@@ -391,30 +391,33 @@ class Event:
         -------------------
         return: none
         """
+        try:
+            doc_ref = self.db.collection("rooms").document(self.room_id)
+            doc_snapshot = doc_ref.get()
+            play_time_seconds = doc_snapshot.get("play_time_seconds")
 
-        doc_ref = self.db.collection("rooms").document(self.room_id)
-        doc_snapshot = doc_ref.get()
-        play_time_seconds = doc_snapshot.get("play_time_seconds")
+            start_time: datetime = datetime.now()
+            end_time: datetime = start_time + timedelta(minutes=play_time_seconds)
+            print(f"end_time: {end_time}")
+            # COMMENT: プレイ時間を超えた場合、強制的にDBの監視を停止する
+            while end_time > datetime.now():
+                is_finish: bool = self.check_db()
+                print(f"is_finish: {is_finish}")
+                is_game_continue: bool = self.is_game_continue()
+                if is_finish:  # COMMENT: eventが発令されたらループを抜ける
+                    target_id = self.select_event_target()
+                    if self.check_event_clear(target_id):
+                        self.event_release()
 
-        start_time: datetime = datetime.now()
-        end_time: datetime = start_time + timedelta(minutes=play_time_seconds)
-        # COMMENT: プレイ時間を超えた場合、強制的にDBの監視を停止する
-        while end_time > datetime.now():
-            is_finish: bool = self.check_db()
-            print(f"is_finish: {is_finish}")
-            is_game_continue: bool = self.is_game_continue()
-            if is_finish:  # COMMENT: eventが発令されたらループを抜ける
-                target_id = self.select_event_target()
-                if self.check_event_clear(target_id):
-                    self.event_release()
-                
-                break
-            if not is_game_continue: # COMMENT: ゲーム自体が終了した場合、ループから抜ける
-                print("The game in this room is over")
-                break
-            time.sleep(60)  # COMMENT: 60秒置きに実行
-            print("60 time sleep")
-        print("while finish")
+                    break
+                if not is_game_continue: # COMMENT: ゲーム自体が終了した場合、ループから抜ける
+                    print("The game in this room is over")
+                    break
+                time.sleep(60)  # COMMENT: 60秒置きに実行
+                print("60 time sleep")
+            print("while finish")
+        except Exception as e:
+            print(f"Error {e}")
     
     def select_event_target(self) -> str:
         """
