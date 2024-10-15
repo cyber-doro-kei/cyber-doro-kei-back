@@ -80,7 +80,7 @@ class Event:
         """
 
         data = {
-            "date": datetime.now().isoformat(),
+            "created_at": firestore.SERVER_TIMESTAMP,
             "text": "テストイベント"
         }
         event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
@@ -189,7 +189,7 @@ class Event:
             if doc_snapshot.exists and doc_snapshot.get("is_under_arrest"):
                 event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
                 data = {
-                    "date": datetime.now().isoformat(),
+                    "created_at": firestore.SERVER_TIMESTAMP,
                     "text": f'{self.event_target_robber_name}が逮捕されました。イベントクリアです'
                 }
                 event_logs_ref.set(data)
@@ -200,7 +200,7 @@ class Event:
             if time.time() - start_time > timeout:
                 event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
                 data = {
-                    "date": datetime.now().isoformat(),
+                    "creted_at": firestore.SERVER_TIMESTAMP,
                     "text": f'イベント失敗です。捕まっている泥棒の半数が解放されます。'
                 }
                 event_logs_ref.set(data)
@@ -234,7 +234,7 @@ class Event:
             user_ref = users_ref.document(user_doc.id)
             event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
             data = {
-                "date": datetime.now().isoformat(),
+                "created_at": firestore.SERVER_TIMESTAMP,
                 "text": f'{self.event_target_robber_name}はイベント失敗により解放されました。'
             }
             event_logs_ref.set(data)
