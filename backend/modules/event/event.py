@@ -397,7 +397,7 @@ class Event:
         play_time_seconds = doc_snapshot.get("play_time_seconds")
 
         start_time: datetime = datetime.now()
-        end_time: datetime = start_time + timedelta(seconds=play_time_seconds)
+        end_time: datetime = start_time + timedelta(minutes=play_time_seconds)
         # COMMENT: プレイ時間を超えた場合、強制的にDBの監視を停止する
         while end_time > datetime.now():
             is_finish: bool = self.check_db()
