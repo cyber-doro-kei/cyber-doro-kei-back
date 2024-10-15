@@ -125,7 +125,7 @@ class Event:
                 is_game_continue: bool = self.is_game_continue()
                 if is_finish:  # COMMENT: eventが発令されたらループを抜ける
                     target_id = self.select_event_target()
-                    if self.check_event_clear(target_id):
+                    if not self.check_event_clear(target_id):
                         self.event_release()
 
                     break
