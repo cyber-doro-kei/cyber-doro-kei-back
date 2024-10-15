@@ -413,6 +413,7 @@ class Event:
                 print("The game in this room is over")
                 break
             time.sleep(60)  # COMMENT: 60秒置きに実行
+            print("60 time sleep")
     
     def select_event_target(self) -> str:
         """
