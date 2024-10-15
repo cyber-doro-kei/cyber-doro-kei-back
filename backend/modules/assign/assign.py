@@ -88,6 +88,7 @@ class Assign:
             user_ref = self.users_ref.document(user.id)
             if cop_num > 0:
                 user_ref.update({"is_cop": True})
+                user_ref.update({"is_under_arrest": False})
                 cop_num -= 1
             else:
                 user_ref.update({"is_cop": False})
