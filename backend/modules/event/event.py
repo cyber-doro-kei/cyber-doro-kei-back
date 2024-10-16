@@ -207,9 +207,8 @@ class Event:
                 }
                 event_logs_ref.set(data)
 
-                break
+                return False
 
-        return False
 
     def event_release(self) -> None:
         """
