@@ -113,30 +113,25 @@ class Event:
             doc_ref = self.db.collection("rooms").document(self.room_id)
             doc_snapshot = doc_ref.get()
             play_time_seconds = doc_snapshot.get("play_time_seconds")
-            print(f"play_time_seconds", play_time_seconds)
 
             start_time: datetime = datetime.now()
             end_time: datetime = start_time + timedelta(seconds=play_time_seconds*60)
-            print(f"end_time: {end_time}")
+            
             # COMMENT: プレイ時間を超えた場合、強制的にDBの監視を停止する
             while end_time > datetime.now():
                 is_finish: bool = self.check_db()
-                print(f"is_finish: {is_finish}")
                 is_game_continue: bool = self.is_game_continue()
                 if is_finish:  # COMMENT: eventが発令されたらループを抜ける
                     target_id = self.select_event_target()
-                    print(f"target_id: {target_id}")
+          
                     if not self.check_event_clear(target_id): 
                         self.event_release()
-                        print("event_release") # COMMENT: イベントが成功しなかった場合、解放処理を行う
 
                     break
                 if not is_game_continue: # COMMENT: ゲーム自体が終了した場合、ループから抜ける
                     print("The game in this room is over")
                     break
                 time.sleep(60)  # COMMENT: 60秒置きに実行
-                print("60 time sleep")
-            print("while finish")
         except Exception as e:
             print(f"Error {e}")
     
