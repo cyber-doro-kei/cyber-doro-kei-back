@@ -125,8 +125,10 @@ class Event:
                 is_game_continue: bool = self.is_game_continue()
                 if is_finish:  # COMMENT: eventが発令されたらループを抜ける
                     target_id = self.select_event_target()
-                    if not self.check_event_clear(target_id):
+                    print(f"target_id: {target_id}")
+                    if not self.check_event_clear(target_id): 
                         self.event_release()
+                        print("event_release") # COMMENT: イベントが成功しなかった場合、解放処理を行う
 
                     break
                 if not is_game_continue: # COMMENT: ゲーム自体が終了した場合、ループから抜ける
