@@ -1,7 +1,6 @@
 from datetime import datetime
 from google.cloud import firestore
 
-
 class Timer:
     """
     Timer: Class -> 時間管理全体を統括するクラス
@@ -21,11 +20,14 @@ class Timer:
         return none
         """
 
-        started_at = datetime.now(self.jst).isoformat()
-        data = {"started_at":  firestore.SERVER_TIMESTAMP, "is_active": True}
+        # started_at = datetime.now(self.jst).isoformat()
+        started_at = firestore.SERVER_TIMESTAMP
+        data = {"started_at": started_at, "is_active": True}
 
         # COMMENT: Firebaseのroomsコレクションへの参照を取得し、指定されたドキュメントにデータを追加
         doc_ref = self.db.collection("rooms").document(self.room_id)
+        # DEBUG:
+        print(f"room_id: {self.room_id}")
         doc_ref.update(data)
 
     def finish_timer(self) -> None:

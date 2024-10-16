@@ -48,8 +48,11 @@ async def start_timer(room_id: str, req: StartTimer):
         timer = Timer(db, room_id, jst)
         timer.start_timer()
 
-        command = ["python", "modules/event/execute.py", room_id]
-        subprocess.Popen(command)  # COMMENT: サブプロセスでDB監視を実施
+        command = ['python','modules/event/execute.py', room_id]
+        print("strat_timer")
+        # DEBUG: 
+        print(f"command is {command}")
+        subprocess.Popen(command) # COMMENT: サブプロセスでDB監視を実施
 
         response = {"message": "Data added to Firebase successfully"}
         return JSONResponse(status_code=200, content=response)

@@ -2,6 +2,7 @@ import time
 from datetime import datetime, timedelta
 import random
 from google.cloud.firestore import FieldFilter
+from google.cloud import firestore
 
 class Event:
     """
@@ -79,7 +80,7 @@ class Event:
         """
 
         data = {
-            "date": datetime.now().isoformat(),
+            "created_at": firestore.SERVER_TIMESTAMP,
             "text": "テストイベント"
         }
         event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
@@ -108,27 +109,31 @@ class Event:
         -------------------
         return: none
         """
+        try:
+            doc_ref = self.db.collection("rooms").document(self.room_id)
+            doc_snapshot = doc_ref.get()
+            play_time_seconds = doc_snapshot.get("play_time_seconds")
 
-        doc_ref = self.db.collection("rooms").document(self.room_id)
-        doc_snapshot = doc_ref.get()
-        play_time_seconds = doc_snapshot.get("play_time_seconds")
+            start_time: datetime = datetime.now()
+            end_time: datetime = start_time + timedelta(seconds=play_time_seconds*60)
+            
+            # COMMENT: プレイ時間を超えた場合、強制的にDBの監視を停止する
+            while end_time > datetime.now():
+                is_finish: bool = self.check_db()
+                is_game_continue: bool = self.is_game_continue()
+                if is_finish:  # COMMENT: eventが発令されたらループを抜ける
+                    target_id = self.select_event_target()
+          
+                    if not self.check_event_clear(target_id): 
+                        self.event_release()
 
-        start_time: datetime = datetime.now()
-        end_time: datetime = start_time + timedelta(seconds=play_time_seconds)
-        # COMMENT: プレイ時間を超えた場合、強制的にDBの監視を停止する
-        while end_time > datetime.now():
-            is_finish: bool = self.check_db()
-            is_game_continue: bool = self.is_game_continue()
-            if is_finish:  # COMMENT: eventが発令されたらループを抜ける
-                target_id = self.select_event_target()
-                if self.check_event_clear(target_id):
-                    self.event_release()
-                
-                break
-            if not is_game_continue: # COMMENT: ゲーム自体が終了した場合、ループから抜ける
-                print("The game in this room is over")
-                break
-            time.sleep(60)  # COMMENT: 60秒置きに実行
+                    break
+                if not is_game_continue: # COMMENT: ゲーム自体が終了した場合、ループから抜ける
+                    print("The game in this room is over")
+                    break
+                time.sleep(60)  # COMMENT: 60秒置きに実行
+        except Exception as e:
+            print(f"Error {e}")
     
     def select_event_target(self) -> str:
         """
@@ -153,7 +158,7 @@ class Event:
 
         event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
         data = {
-            "date": datetime.now().isoformat(),
+            "created_at": firestore.SERVER_TIMESTAMP,
             "text": f'イベントが発令しました。10分以内に警察陣営が{self.event_target_robber_name}を捕まえないと牢屋の半数が解放されます。'
         }
         event_logs_ref.set(data)
@@ -181,7 +186,7 @@ class Event:
             if doc_snapshot.exists and doc_snapshot.get("is_under_arrest"):
                 event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
                 data = {
-                    "date": datetime.now().isoformat(),
+                    "created_at": firestore.SERVER_TIMESTAMP,
                     "text": f'{self.event_target_robber_name}が逮捕されました。イベントクリアです'
                 }
                 event_logs_ref.set(data)
@@ -192,14 +197,13 @@ class Event:
             if time.time() - start_time > timeout:
                 event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
                 data = {
-                    "date": datetime.now().isoformat(),
+                    "creted_at": firestore.SERVER_TIMESTAMP,
                     "text": f'イベント失敗です。捕まっている泥棒の半数が解放されます。'
                 }
                 event_logs_ref.set(data)
 
-                break
+                return False
 
-        return False
 
     def event_release(self) -> None:
         """
@@ -226,7 +230,7 @@ class Event:
             user_ref = users_ref.document(user_doc.id)
             event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
             data = {
-                "date": datetime.now().isoformat(),
+                "created_at": firestore.SERVER_TIMESTAMP,
                 "text": f'{self.event_target_robber_name}はイベント失敗により解放されました。'
             }
             event_logs_ref.set(data)
