@@ -23,13 +23,15 @@ class Timer:
 
         # started_at = datetime.now(self.jst).isoformat()
         started_at = firestore.SERVER_TIMESTAMP
-        data = {"started_at": started_at, "is_active": True}
+        data = {"started_at": started_at}
 
         # COMMENT: Firebaseのroomsコレクションへの参照を取得し、指定されたドキュメントにデータを追加
         doc_ref = self.db.collection("rooms").document(self.room_id)
         # DEBUG:
         print(f"room_id: {self.room_id}")
         doc_ref.update(data)
+        is_active_true = {"is_active": True}
+        doc_ref.update(is_active_true)
 
     def finish_timer(self) -> None:
         """
