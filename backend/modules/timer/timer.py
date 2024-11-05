@@ -30,6 +30,7 @@ class Timer:
         # DEBUG:
         print(f"room_id: {self.room_id}")
         doc_ref.update(data)
+        time.sleep(0.1)
         is_active_true = {"is_active": True}
         doc_ref.update(is_active_true)
 
