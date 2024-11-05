@@ -228,10 +228,12 @@ class Event:
         for i in range(num_to_release):
             user_doc = arrested_users_list[i]
             user_ref = users_ref.document(user_doc.id)
+            user_snapshot = user_ref.get()
+            user_name = user_snapshot.get("name")
             event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
             data = {
                 "created_at": firestore.SERVER_TIMESTAMP,
-                "text": f'{self.event_target_robber_name}はイベント失敗により解放されました。'
+                "text": f'{user_name}はイベント失敗により解放されました。'
             }
             event_logs_ref.set(data)
             user_ref.update({"is_under_arrest": False})
