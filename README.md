@@ -1,11 +1,18 @@
 # cyber-doro-kei-back
 
-## 起動方法
-1. docker compose build
-2. docker compose up -d
-3. http://localhost:8000にアクセス
+スマートフォン向けアプリ「Cyberドロケイ」で用いるバックエンドサーバーのプログラムです。
+このアプリを遊ぶためには、このバックエンドサーバーを起動する必要があります。
 
-### docker内のbashを触る
-1. docker ps でコンテナidを入手
-2. docker exec -it <コンテナID> bash
-3. uvicorn app:app --reload --host 0.0.0.0 --port 8000 で何が原因で上手くいってないかわかる.
+## 注意点
+このサーバーを一般に公開する場合は、法令上の届け出が必要な場合があります。
+このプログラムの利用によって発生するいかなる損害についても、作者は一切の責任を負いません。
+
+## 環境構築
+```
+$ pip3 install -r requirements.txt
+```
+
+## サーバー起動
+```
+python3 -m uvicorn app:app --port 8000  # specify the port you want to use
+```
