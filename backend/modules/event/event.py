@@ -113,12 +113,13 @@ class Event:
             doc_ref = self.db.collection("rooms").document(self.room_id)
             doc_snapshot = doc_ref.get()
             play_time_seconds = doc_snapshot.get("play_time_seconds")
-
+            last_event_gps_share_time_seconds = doc_snapshot.get("last_event_gps_share_time_seconds")
+            event_last_time  : datetime = datetime.now() + timedelta(seconds=play_time_seconds*60) - timedelta(seconds=last_event_gps_share_time_seconds*60)
             start_time: datetime = datetime.now()
             end_time: datetime = start_time + timedelta(seconds=play_time_seconds*60)
             
             # COMMENT: プレイ時間を超えた場合、強制的にDBの監視を停止する
-            while end_time > datetime.now():
+            while event_last_time > datetime.now():
                 is_finish: bool = self.check_db()
                 is_game_continue: bool = self.is_game_continue()
                 if is_finish:  # COMMENT: eventが発令されたらループを抜ける
@@ -228,10 +229,12 @@ class Event:
         for i in range(num_to_release):
             user_doc = arrested_users_list[i]
             user_ref = users_ref.document(user_doc.id)
+            user_snapshot = user_ref.get()
+            user_name = user_snapshot.get("name")
             event_logs_ref = self.db.collection("event_logs").document(self.room_id).collection("logs").document()
             data = {
                 "created_at": firestore.SERVER_TIMESTAMP,
-                "text": f'{self.event_target_robber_name}はイベント失敗により解放されました。'
+                "text": f'{user_name}はイベント失敗により解放されました。'
             }
             event_logs_ref.set(data)
             user_ref.update({"is_under_arrest": False})
