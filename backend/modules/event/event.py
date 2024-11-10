@@ -96,7 +96,7 @@ class Event:
         """
 
         if self.is_event_start():
-            self.add_event_logs()
+            # self.add_event_logs()
             return True
         else:
             return False
