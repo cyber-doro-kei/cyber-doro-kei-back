@@ -30,7 +30,7 @@ class Timer:
         # DEBUG:
         print(f"room_id: {self.room_id}")
         doc_ref.update(data)
-        time.sleep(0.1)
+        time.sleep(10)
         is_active_true = {"is_active": True}
         doc_ref.update(is_active_true)
 
@@ -72,7 +72,8 @@ class Timer:
                 return
 
             # 終了時刻を計算（現在時刻から指定時間後）
-            start_time = time.time()
+            # start_time = time.time()
+            start_time = room_data.get("started_at")
             end_time = start_time + (play_time_seconds * 60)
 
             while time.time() < end_time:
